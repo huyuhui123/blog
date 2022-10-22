@@ -1,0 +1,25 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.z2011.blogapi.dao.mapper.TagMapper">
+    <!--public List<Tag> selectTagsByArticleId(Long articleId);-->
+    <select id="selectTagsByArticleId" parameterType="long" resultType="com.z2011.blogapi.dao.pojo.Tag">
+        select id,avatar,tag_name from ms_tag
+        where id in (select tag_id from ms_article_tag where article_id=#{articleId})
+    </select>
+
+    <!--public List<Tag> findHotsTagIds(int limit);-->
+    <select id="findHotsTagIds" resultType="java.lang.Long" parameterType="java.lang.Integer">
+        select c.*,tag_name from (select tag_id from ms_article_tag GROUP BY tag_id order by count(*) DESC limit #{limit}) c
+                                     left join ms_tag on c.tag_id=id
+    </select>
+    <!--public List<Tag> findTagsByTagsIds(List<Long> tagIds);-->
+    <select id="findTagsByTagsIds" resultType="com.z2011.blogapi.dao.pojo.Tag" parameterType="list" >
+        select id,tag_name tagName from ms_tag
+        where id in
+        <foreach collection="list" item="tagId" separator="," open="(" close=")">
+            #{tagId}
+        </foreach>
+    </select>
+</mapper>

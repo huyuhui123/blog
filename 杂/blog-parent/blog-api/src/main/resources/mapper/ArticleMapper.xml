@@ -1,0 +1,53 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.z2011.blogapi.dao.mapper.ArticleMapper">
+    <resultMap id="ArticleList" type="com.z2011.blogapi.dao.pojo.Article">
+        <id  property="id" column="id"/>
+        <result property="authorId" column="author_id"/>
+        <result property="title" column="title"/>
+        <result property="summary" column="summary"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="bodyId" column="body_id"/>
+        <result property="weight" column="weight"/>
+        <result property="commentCounts" column="comment_counts"/>
+        <result property="createDate" column="create_date"/>
+        <result property="viewCounts" column="view_counts"/>
+    </resultMap>
+
+    <!--SELECT year(FROM_UNIXTIME(create_date/1000)) year,month(FROM_UNIXTIME(create_date/1000)) month,count(*) count from ms_article GROUP BY year,month
+    不用year也可以用FROM_UNIXTIME(create_date/1000,%Y)-->
+    <select id="selectListArchives" resultType="com.z2011.blogapi.dao.dos.Archives" >
+        SELECT year(FROM_UNIXTIME(create_date/1000)) year,month(FROM_UNIXTIME(create_date/1000)) month,count(*) count from ms_article GROUP BY year,month
+    </select>
+        <!--    categoryId
+             * @param tagId
+             * @param year
+             * @param month
+             首先完成首页需求：使用IPage做为返回值自动分页，加入ORDER BY weight,create_date DESC完成首页需求
+             根据是否含有categoryId来判断是否做条件处理
+             -->
+    <select id="articleList" resultMap="ArticleList">
+        select * from ms_article
+
+    <where>
+        1=1
+        <if test="categoryId!=null">
+            and category_id=#{categoryId}
+        </if>
+        <if test="tagId!=null">
+            and id in (select article_id from ms_article_tag where tag_id=#{tagId})
+        </if>
+        <if test="year!=null and year.length!=0 and month!=null and month.length!=0">
+            and year(FROM_UNIXTIME(create_date/1000))=#{year} and month(FROM_UNIXTIME(create_date/1000))=#{month}
+        </if>
+                ORDER BY weight,create_date DESC
+
+    </where>
+
+    </select>
+
+
+</mapper>
